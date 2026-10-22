@@ -10,7 +10,6 @@ namespace ExpenseTracker
         static void Main(string[] args)
         {
             var expenses = new List<Expense>();
-            //Category[] allCategories = Enum.GetValues<Category>();
 
             while (true)
             {
@@ -31,7 +30,7 @@ namespace ExpenseTracker
                         PrintExpenses(expenses);
                         break;
                     case 3:
-                        //вызов ф-ии;
+                        ExpenseStatistics(expenses);
                         break;
                     case 4:
                         //вызов ф-ии;
@@ -130,7 +129,8 @@ namespace ExpenseTracker
 
             expenses.Add(new Expense(name, amount, selectedCategory));
 
-            Console.WriteLine("Трата добавлена.\n");
+            Console.WriteLine("Трата добавлена.\n\n");
+            Console.WriteLine(new string('-', 65));
         }
 
         private static string GetCategoryRuTitle (Category c)
@@ -145,15 +145,95 @@ namespace ExpenseTracker
                 _ => throw new ArgumentOutOfRangeException(nameof(c), c, "Неизвестная категория")
             };
         }
+
         private static void PrintExpenses(List<Expense> expenses)
         {
+            if (expenses.Count == 0)
+            {
+                PrintError("Трат пока нет.");
+                return;
+            }
+
+            Console.WriteLine("{0, -10}{1, -25}{2, -10}{3, -20}", "Номер", "Название", "Сумма", "Категория");
+
             int item = 0;
             foreach (Expense expense in expenses)
             {
                 item++;
-                Console.WriteLine("{0, -10}{1, -25}{2, -10}{3, -20}", "Номер", "Название", "Сумма", "Категория");
-                Console.WriteLine("{0, -10}{1, -25}{2, -10}{3, -20}", $"{item}", $"{expense.Name}", $"{expense.Amount}", $"{GetCategoryRuTitle(expense.Category)}");
+                Console.WriteLine("{0, -10}{1, -25}{2, -10:N2}{3, -20}", item, expense.Name, expense.Amount, GetCategoryRuTitle(expense.Category));
             }
+
+            Console.WriteLine(new string('-', 65));
+        }
+
+        private static void ExpenseStatistics(List<Expense> expenses)
+        {
+            if (expenses.Count == 0)
+            {
+                PrintError("Трат пока нет.");
+                return;
+            }
+
+            decimal totalAmount = 0;
+            foreach (Expense expense in expenses)
+            {
+                totalAmount += expense.Amount;
+            }
+
+            decimal averageAmount = totalAmount / expenses.Count;
+
+            int cast = (int)averageAmount;
+            decimal rounded = Math.Round(averageAmount);
+            decimal roundedAway = Math.Round(averageAmount, MidpointRounding.AwayFromZero);
+
+            Expense maxExpense = expenses[0];
+            foreach (Expense expense in expenses)
+            {
+                if (expense.Amount > maxExpense.Amount)
+                {
+                    maxExpense = expense;
+                }
+            }
+
+            var categorySum = new Dictionary<Category, decimal>();
+            foreach (Category category in Enum.GetValues<Category>())
+            {
+                categorySum[category] = 0m;
+            }
+
+            foreach (Expense expense in expenses)
+            {
+                categorySum[expense.Category] += expense.Amount;
+            }
+
+            Console.WriteLine($"Общая сумма: {totalAmount:N2}\n" +
+                $"Средняя трата: {averageAmount:N2} (без дробной части: {cast}, банковское округление: {rounded}, обычное округление: {roundedAway})\n" +
+                $"Самая большая трата: {maxExpense.Name} --- {maxExpense.Amount:N2}\n");
+            
+            Console.WriteLine($"\n{"Категория",-20} | {"Сумма",-15}");
+
+            foreach (var pair in categorySum)
+            {
+                Console.WriteLine($"{GetCategoryRuTitle(pair.Key), -20} | {pair.Value, -15:N2}");
+            }
+
+            Console.WriteLine($"\n{"Категория",-20} | {"Процент от суммы",-15}");
+
+            foreach (var pair in categorySum)
+            {
+                decimal percent = pair.Value / totalAmount * 100;
+                Console.WriteLine($"{GetCategoryRuTitle(pair.Key),-20} | {percent,-15:N2}");
+            }
+
+            int numberOfExpenses = 0;
+            foreach (var expense in expenses)
+            {
+                numberOfExpenses += (expense.Amount > 1000) ? 1 : 0;
+            }
+
+            Console.WriteLine($"\nКоличество трат больше 1000: {numberOfExpenses}\n");
+
+            Console.WriteLine(new string('-', 65));
         }
     }
 }
