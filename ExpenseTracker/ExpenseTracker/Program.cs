@@ -17,8 +17,7 @@ namespace ExpenseTracker
                 "1. Добавить трату\n" +
                 "2. Показать все траты\n" +
                 "3. Статистика\n" +
-                "4. Лаборатория типов\n" +
-                "5. Выход\n\n" +
+                "4. Выход\n\n" +
                 "Выберите номер действия: ");
 
                 switch (choice)
@@ -33,12 +32,9 @@ namespace ExpenseTracker
                         ExpenseStatistics(expenses);
                         break;
                     case 4:
-                        //вызов ф-ии;
-                        break;
-                    case 5:
                         return;
                     default:
-                        Console.WriteLine("Введите номер действия от 1 до 5.\n");
+                        Console.WriteLine("Введите номер действия от 1 до 4.\n");
                         break;
                 }
             }
@@ -69,11 +65,11 @@ namespace ExpenseTracker
                    && Enum.IsDefined(category);
         }
 
-        private static int ReadIntFromConsole(string promt)
+        private static int ReadIntFromConsole(string prompt)
         {
             while (true)
             {
-                Console.Write(promt);
+                Console.Write(prompt);
 
                 if (TryReadInt(Console.ReadLine(), out int result))
                 {
@@ -86,7 +82,7 @@ namespace ExpenseTracker
         private static void AddAnExpense(List<Expense> expenses)
         {
             Console.WriteLine("\nДоступные категории:");
-            foreach (Category category in Enum.GetValues<Category>())
+            foreach (var category in Enum.GetValues<Category>())
             {
                 Console.WriteLine($"{category} = {(int)category}");
             }
@@ -129,7 +125,7 @@ namespace ExpenseTracker
 
             expenses.Add(new Expense(name, amount, selectedCategory));
 
-            Console.WriteLine("Трата добавлена.\n\n");
+            Console.WriteLine("Трата добавлена.\n");
             Console.WriteLine(new string('-', 65));
         }
 
@@ -150,17 +146,18 @@ namespace ExpenseTracker
         {
             if (expenses.Count == 0)
             {
-                PrintError("Трат пока нет.");
+                Console.WriteLine("\nТрат пока нет.\n");
+                Console.WriteLine(new string('-', 65));
                 return;
             }
 
-            Console.WriteLine("{0, -10}{1, -25}{2, -10}{3, -20}", "Номер", "Название", "Сумма", "Категория");
+            Console.WriteLine("\n{0, -15}{1, -25}{2, -20}{3, -20}", "Номер", "Название", "Сумма", "Категория");
 
             int item = 0;
-            foreach (Expense expense in expenses)
+            foreach (var expense in expenses)
             {
                 item++;
-                Console.WriteLine("{0, -10}{1, -25}{2, -10:N2}{3, -20}", item, expense.Name, expense.Amount, GetCategoryRuTitle(expense.Category));
+                Console.WriteLine("{0, -15}{1, -25}{2, -20:N2}{3, -20}", item, expense.Name, expense.Amount, GetCategoryRuTitle(expense.Category));
             }
 
             Console.WriteLine(new string('-', 65));
@@ -170,12 +167,13 @@ namespace ExpenseTracker
         {
             if (expenses.Count == 0)
             {
-                PrintError("Трат пока нет.");
+                Console.WriteLine("\nТрат пока нет.\n");
+                Console.WriteLine(new string('-', 65));
                 return;
             }
 
             decimal totalAmount = 0;
-            foreach (Expense expense in expenses)
+            foreach (var expense in expenses)
             {
                 totalAmount += expense.Amount;
             }
@@ -187,7 +185,7 @@ namespace ExpenseTracker
             decimal roundedAway = Math.Round(averageAmount, MidpointRounding.AwayFromZero);
 
             Expense maxExpense = expenses[0];
-            foreach (Expense expense in expenses)
+            foreach (var expense in expenses)
             {
                 if (expense.Amount > maxExpense.Amount)
                 {
@@ -196,17 +194,17 @@ namespace ExpenseTracker
             }
 
             var categorySum = new Dictionary<Category, decimal>();
-            foreach (Category category in Enum.GetValues<Category>())
+            foreach (var category in Enum.GetValues<Category>())
             {
                 categorySum[category] = 0m;
             }
 
-            foreach (Expense expense in expenses)
+            foreach (var expense in expenses)
             {
                 categorySum[expense.Category] += expense.Amount;
             }
 
-            Console.WriteLine($"Общая сумма: {totalAmount:N2}\n" +
+            Console.WriteLine($"\nОбщая сумма: {totalAmount:N2}\n" +
                 $"Средняя трата: {averageAmount:N2} (без дробной части: {cast}, банковское округление: {rounded}, обычное округление: {roundedAway})\n" +
                 $"Самая большая трата: {maxExpense.Name} --- {maxExpense.Amount:N2}\n");
             
