@@ -7,6 +7,9 @@ namespace ExpenseTracker
     enum Category { Food, Transport, Entertainment, Health, Other };
     internal class Program
     {
+        private const decimal LargeExpenseLimit = 1000m;
+        private const int LineWidth = 80;
+
         static void Main(string[] args)
         {
             var book = new ExpenseBook();
@@ -79,6 +82,7 @@ namespace ExpenseTracker
                 PrintError("Введите корректное целое число.");
             }
         }
+
         private static void AddAnExpense(ExpenseBook book)
         {
             Console.WriteLine("\nДоступные категории:");
@@ -126,7 +130,7 @@ namespace ExpenseTracker
             book.Add(new Expense(name, amount, selectedCategory));
 
             Console.WriteLine("Трата добавлена.\n");
-            Console.WriteLine(new string('-', 65));
+            Console.WriteLine(new string('-', LineWidth));
         }
 
         private static string GetCategoryRuTitle (Category c)
@@ -147,7 +151,7 @@ namespace ExpenseTracker
             if (book.Count == 0)
             {
                 Console.WriteLine("\nТрат пока нет.\n");
-                Console.WriteLine(new string('-', 65));
+                Console.WriteLine(new string('-', LineWidth));
                 return;
             }
 
@@ -160,7 +164,7 @@ namespace ExpenseTracker
                 Console.WriteLine("{0, -15}{1, -25}{2, -20:N2}{3, -20}", item, expense.Name, expense.Amount, GetCategoryRuTitle(expense.Category));
             }
 
-            Console.WriteLine(new string('-', 65));
+            Console.WriteLine(new string('-', LineWidth));
         }
 
         private static void ExpenseStatistics(ExpenseBook book)
@@ -168,44 +172,19 @@ namespace ExpenseTracker
             if (book.Count == 0)
             {
                 Console.WriteLine("\nТрат пока нет.\n");
-                Console.WriteLine(new string('-', 65));
+                Console.WriteLine(new string('-', LineWidth));
                 return;
             }
 
-            decimal totalAmount = 0;
-            foreach (var expense in book.Expenses)
-            {
-                totalAmount += expense.Amount;
-            }
-
-            decimal averageAmount = totalAmount / book.Count;
-
-            int cast = (int)averageAmount;
-            decimal rounded = Math.Round(averageAmount);
-            decimal roundedAway = Math.Round(averageAmount, MidpointRounding.AwayFromZero);
-
-            Expense maxExpense = book.Expenses[0];
-            foreach (var expense in book.Expenses)
-            {
-                if (expense.Amount > maxExpense.Amount)
-                {
-                    maxExpense = expense;
-                }
-            }
-
-            var categorySum = new Dictionary<Category, decimal>();
-            foreach (var category in Enum.GetValues<Category>())
-            {
-                categorySum[category] = 0m;
-            }
-
-            foreach (var expense in book.Expenses)
-            {
-                categorySum[expense.Category] += expense.Amount;
-            }
+            decimal totalAmount = book.GetTotal();
+            decimal averageAmount = book.GetAverage();
+            Expense maxExpense = book.GetMax();
+            Dictionary<Category, decimal> categorySum = book.GetTotalsByCategory();
+            Dictionary<Category, decimal> percents = book.GetPercentsByCategory();
+            int numberOfExpenses = book.CountAbove(LargeExpenseLimit);
 
             Console.WriteLine($"\nОбщая сумма: {totalAmount:N2}\n" +
-                $"Средняя трата: {averageAmount:N2} (без дробной части: {cast}, банковское округление: {rounded}, обычное округление: {roundedAway})\n" +
+                $"Средняя трата: {averageAmount:N2}\n" +
                 $"Самая большая трата: {maxExpense.Name} --- {maxExpense.Amount:N2}\n");
             
             Console.WriteLine($"\n{"Категория",-20} | {"Сумма",-15}");
@@ -217,21 +196,14 @@ namespace ExpenseTracker
 
             Console.WriteLine($"\n{"Категория",-20} | {"Процент от суммы",-15}");
 
-            foreach (var pair in categorySum)
+            foreach (var pair in percents)
             {
-                decimal percent = pair.Value / totalAmount * 100;
-                Console.WriteLine($"{GetCategoryRuTitle(pair.Key),-20} | {percent,-15:N2}");
+                Console.WriteLine($"{GetCategoryRuTitle(pair.Key),-20} | {pair.Value,-15:N3}");
             }
 
-            int numberOfExpenses = 0;
-            foreach (var expense in book.Expenses)
-            {
-                numberOfExpenses += (expense.Amount > 1000) ? 1 : 0;
-            }
+            Console.WriteLine($"\nКоличество трат больше {LargeExpenseLimit:N2}: {numberOfExpenses}\n");
 
-            Console.WriteLine($"\nКоличество трат больше 1000: {numberOfExpenses}\n");
-
-            Console.WriteLine(new string('-', 65));
+            Console.WriteLine(new string('-', LineWidth));
         }
     }
 }
