@@ -9,7 +9,7 @@ namespace ExpenseTracker
     {
         static void Main(string[] args)
         {
-            var expenses = new List<Expense>();
+            var book = new ExpenseBook();
 
             while (true)
             {
@@ -23,13 +23,13 @@ namespace ExpenseTracker
                 switch (choice)
                 {
                     case 1:
-                        AddAnExpense(expenses);
+                        AddAnExpense(book);
                         break;
                     case 2:
-                        PrintExpenses(expenses);
+                        PrintExpenses(book);
                         break;
                     case 3:
-                        ExpenseStatistics(expenses);
+                        ExpenseStatistics(book);
                         break;
                     case 4:
                         return;
@@ -79,7 +79,7 @@ namespace ExpenseTracker
                 PrintError("Введите корректное целое число.");
             }
         }
-        private static void AddAnExpense(List<Expense> expenses)
+        private static void AddAnExpense(ExpenseBook book)
         {
             Console.WriteLine("\nДоступные категории:");
             foreach (var category in Enum.GetValues<Category>())
@@ -123,7 +123,7 @@ namespace ExpenseTracker
                 return;
             }
 
-            expenses.Add(new Expense(name, amount, selectedCategory));
+            book.Add(new Expense(name, amount, selectedCategory));
 
             Console.WriteLine("Трата добавлена.\n");
             Console.WriteLine(new string('-', 65));
@@ -142,9 +142,9 @@ namespace ExpenseTracker
             };
         }
 
-        private static void PrintExpenses(List<Expense> expenses)
+        private static void PrintExpenses(ExpenseBook book)
         {
-            if (expenses.Count == 0)
+            if (book.Count == 0)
             {
                 Console.WriteLine("\nТрат пока нет.\n");
                 Console.WriteLine(new string('-', 65));
@@ -154,7 +154,7 @@ namespace ExpenseTracker
             Console.WriteLine("\n{0, -15}{1, -25}{2, -20}{3, -20}", "Номер", "Название", "Сумма", "Категория");
 
             int item = 0;
-            foreach (var expense in expenses)
+            foreach (var expense in book.Expenses)
             {
                 item++;
                 Console.WriteLine("{0, -15}{1, -25}{2, -20:N2}{3, -20}", item, expense.Name, expense.Amount, GetCategoryRuTitle(expense.Category));
@@ -163,9 +163,9 @@ namespace ExpenseTracker
             Console.WriteLine(new string('-', 65));
         }
 
-        private static void ExpenseStatistics(List<Expense> expenses)
+        private static void ExpenseStatistics(ExpenseBook book)
         {
-            if (expenses.Count == 0)
+            if (book.Count == 0)
             {
                 Console.WriteLine("\nТрат пока нет.\n");
                 Console.WriteLine(new string('-', 65));
@@ -173,19 +173,19 @@ namespace ExpenseTracker
             }
 
             decimal totalAmount = 0;
-            foreach (var expense in expenses)
+            foreach (var expense in book.Expenses)
             {
                 totalAmount += expense.Amount;
             }
 
-            decimal averageAmount = totalAmount / expenses.Count;
+            decimal averageAmount = totalAmount / book.Count;
 
             int cast = (int)averageAmount;
             decimal rounded = Math.Round(averageAmount);
             decimal roundedAway = Math.Round(averageAmount, MidpointRounding.AwayFromZero);
 
-            Expense maxExpense = expenses[0];
-            foreach (var expense in expenses)
+            Expense maxExpense = book.Expenses[0];
+            foreach (var expense in book.Expenses)
             {
                 if (expense.Amount > maxExpense.Amount)
                 {
@@ -199,7 +199,7 @@ namespace ExpenseTracker
                 categorySum[category] = 0m;
             }
 
-            foreach (var expense in expenses)
+            foreach (var expense in book.Expenses)
             {
                 categorySum[expense.Category] += expense.Amount;
             }
@@ -224,7 +224,7 @@ namespace ExpenseTracker
             }
 
             int numberOfExpenses = 0;
-            foreach (var expense in expenses)
+            foreach (var expense in book.Expenses)
             {
                 numberOfExpenses += (expense.Amount > 1000) ? 1 : 0;
             }
